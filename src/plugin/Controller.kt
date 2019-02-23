@@ -12,12 +12,12 @@ import scape.editor.fx.TupleCellFactory
 import scape.editor.gui.App
 import scape.editor.gui.controller.BaseController
 import scape.editor.gui.event.LoadCacheEvent
-import scape.editor.gui.event.LoadNpcDefEvent
-import scape.editor.gui.event.SaveNpcDefEvent
 import scape.editor.gui.model.KeyModel
 import scape.editor.gui.model.NamedValueModel
 import scape.editor.gui.model.ValueModel
 import scape.editor.gui.plugin.PluginManager
+import scape.editor.gui.plugin.extension.config.ConfigExtension
+import scape.editor.gui.util.FXDialogUtil
 import java.net.URL
 import java.util.*
 
@@ -52,8 +52,8 @@ class Controller : BaseController() {
     lateinit var valueTf: TextField
 
     override fun initialize(location: URL?, resources: ResourceBundle?) {
-        indexIdCol.setCellValueFactory { it -> it.value.idProperty.asObject() }
-        indexNameCol.setCellValueFactory { it -> it.value.nameProperty }
+        indexIdCol.setCellValueFactory { it.value.idProperty.asObject() }
+        indexNameCol.setCellValueFactory { it.value.nameProperty }
 
         indexTable.selectionModel.selectedItemProperty().addListener { _, _, newValue ->
 
@@ -69,8 +69,8 @@ class Controller : BaseController() {
 
         }
 
-        val filteredKeyList = FilteredList(indexes, {_ -> true})
-        keyTf.textProperty().addListener { observable, oldValue, newValue -> filteredKeyList.setPredicate { it ->
+        val filteredKeyList = FilteredList(indexes) { _ -> true}
+        keyTf.textProperty().addListener { _, _, newValue -> filteredKeyList.setPredicate {
             if (newValue == null || newValue.isEmpty()) {
                 return@setPredicate true
             }
@@ -89,12 +89,12 @@ class Controller : BaseController() {
         sortedKeyList.comparatorProperty().bind(indexTable.comparatorProperty())
         indexTable.items = sortedKeyList
 
-        dataNameCol.setCellValueFactory { it -> it.value.nameProperty }
-        dataValueCol.setCellValueFactory { it -> it.value.valueProperty }
-        dataValueCol.setCellFactory { _ ->  TupleCellFactory() }
+        dataNameCol.setCellValueFactory { it.value.nameProperty }
+        dataValueCol.setCellValueFactory { it.value.valueProperty }
+        dataValueCol.setCellFactory { TupleCellFactory() }
 
-        val filteredValueList = FilteredList(data) { _ -> true}
-        valueTf.textProperty().addListener { _, _, newValue -> filteredValueList.setPredicate { it ->
+        val filteredValueList = FilteredList(data) { true}
+        valueTf.textProperty().addListener { _, _, newValue -> filteredValueList.setPredicate {
             if (newValue == null || newValue.isEmpty()) {
                 return@setPredicate true
             }
@@ -121,7 +121,17 @@ class Controller : BaseController() {
         PluginManager.post(LoadCacheEvent(App.fs))
 
         val archive = App.fs.getArchive(RSArchive.CONFIG_ARCHIVE)
-        PluginManager.post(LoadNpcDefEvent(currentPlugin, archive, indexes))
+
+        val plugin = this.currentPlugin
+
+        if (plugin is ConfigExtension) {
+            try {
+                plugin.onLoad(indexes, archive)
+            } catch(ex: Exception) {
+                ex.printStackTrace()
+                FXDialogUtil.showException(ex)
+            }
+        }
     }
 
     override fun onClear() {
@@ -137,7 +147,17 @@ class Controller : BaseController() {
     @FXML
     fun onSave() {
         val archive = App.fs.getArchive(RSArchive.CONFIG_ARCHIVE)
-        PluginManager.post(SaveNpcDefEvent(currentPlugin, archive, indexes))
+
+        val plugin = this.currentPlugin
+
+        if (plugin is ConfigExtension) {
+            try {
+                plugin.onSave(indexes, archive)
+            } catch(ex: Exception) {
+                ex.printStackTrace()
+                FXDialogUtil.showException(ex)
+            }
+        }
     }
 
 }
