@@ -1,11 +1,11 @@
 package plugin;
 
 import scape.editor.fs.io.RSBuffer;
-import scape.editor.gui.plugin.Plugin;
+import scape.editor.gui.plugin.PluginDescriptor;
 import scape.editor.gui.plugin.extension.config.NpcDefinitionExtension;
 
-@Plugin(name="Vanilla 317 Npc Definition Plugin", authors = "Nshusa", version = "1.1.0")
-public class NpcDefinitionPlugin extends NpcDefinitionExtension {
+@PluginDescriptor(name="Vanilla 317 Npc Definition Plugin", authors = "Nshusa", version = "1.1.0")
+public class Plugin extends NpcDefinitionExtension {
 
     @Override
     public String applicationIcon() {
@@ -25,7 +25,7 @@ public class NpcDefinitionPlugin extends NpcDefinitionExtension {
     }
 
     @Override
-    protected String getFileName() {
+    public String getFileName() {
         return "npc";
     }
 

@@ -21,7 +21,7 @@ import scape.editor.gui.plugin.PluginManager
 import java.net.URL
 import java.util.*
 
-class NpcDefController : BaseController() {
+class Controller : BaseController() {
 
     @FXML
     lateinit var indexTable: TableView<KeyModel>
